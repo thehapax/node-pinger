@@ -37,27 +37,32 @@ def fetch_node_latency(node):
     node_info = {'Node': node, 'Latency': latency}
     return node_info
 
-        
-if __name__ == '__main__':
-    
+
+def get_active_nodes():
     nodelist = public_nodes()
     pool_size = mp.cpu_count()*2
     latency_info = []
 
-    print("Polling nodes...")
-    
     with mp.Pool(processes=pool_size) as pool:
         latency_info = pool.map(fetch_node_latency, nodelist)
 
     pool.close()
     pool.join()
-
-    print(" - 100%\n")
-    print("Active nodes within your range:")
     
     df = pd.DataFrame(latency_info)
     dfc = df.dropna()
     dfc = dfc.sort_values('Latency', ascending=True)
-    pretty_print(dfc)
+    return dfc
 
-    
+        
+if __name__ == '__main__':
+
+    print("Polling nodes...")
+    df = get_active_nodes()
+    print(" - 100%\n")
+
+    if df.empty == False:
+        print("Active nodes within your range:")    
+        pretty_print(df)
+    else:
+        print("No active nodes within your range")
