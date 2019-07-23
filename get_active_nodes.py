@@ -62,11 +62,11 @@ def get_active_nodes(drop_inactive=True):
 if __name__ == '__main__':
 
     print("Polling nodes...")
-    df = get_active_nodes(drop_inactive=False)
+    df = get_active_nodes(drop_inactive=True)
     print(" - 100%\n")
 
     if df.empty == False:
-        print("Active nodes within your range:")    
+        print(f"Active nodes reachable < {max_timeout} seconds in your range:")    
         pretty_print(df)
     else:
         print("No active nodes within your range")
