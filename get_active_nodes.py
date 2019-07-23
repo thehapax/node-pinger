@@ -7,13 +7,14 @@ from time import time, sleep
 import multiprocessing as mp
 import pandas as pd
 
-max_timeout = 2.0
+max_timeout = 2.0 # max ping time is set to 2
 
 def pretty_print(df):
     with pd.option_context('display.max_rows', None, 'display.max_columns', None):
         # pretty print entire thing
         print(df.to_string(index=False))
 
+        
 def wss_test(node):
     """
     Create a websocket connection test
@@ -38,7 +39,7 @@ def fetch_node_latency(node):
     return node_info
 
 
-def get_active_nodes():
+def get_active_nodes(drop_inactive=True):
     nodelist = public_nodes()
     pool_size = mp.cpu_count()*2
     latency_info = []
@@ -50,15 +51,18 @@ def get_active_nodes():
     pool.join()
     
     df = pd.DataFrame(latency_info)
-    dfc = df.dropna()
-    dfc = dfc.sort_values('Latency', ascending=True)
+
+    if drop_inactive is True:
+        df = df.dropna()
+        
+    dfc = df.sort_values('Latency', ascending=True)
     return dfc
 
         
 if __name__ == '__main__':
 
     print("Polling nodes...")
-    df = get_active_nodes()
+    df = get_active_nodes(drop_inactive=False)
     print(" - 100%\n")
 
     if df.empty == False:
