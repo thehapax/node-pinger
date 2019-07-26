@@ -4,6 +4,11 @@ from websocket import create_connection as wss_create
 from time import time
 import multiprocessing as mp
 
+from tqdm import tqdm
+from time import sleep
+
+from functools import partial
+
 max_timeout = 2.0 # max ping time is set to 2
 
 def wss_test(node):
@@ -24,11 +29,9 @@ def check_node(node):
     """
     check latency of an individual node
     """
-    print('#', end='', flush=True)
-
     node_info = dict()
     latency = wss_test(node)
-    node_info = {'Node': node, 'Latency': latency}    
+    node_info = {'Node': node, 'Latency': latency}
     return node_info
 
 
@@ -37,11 +40,13 @@ def get_sorted_nodelist(nodelist):
     check all nodes and poll for latency, 
     eliminate nodes with no response, then sort  
     nodes by increasing latency and return as a list
-    """
+    """    
     pool_size = mp.cpu_count()*2
-
+    n = len(nodelist)
+    
     with mp.Pool(processes=pool_size) as pool:
-        latency_info = pool.map(check_node, nodelist)
+        latency_info = list(tqdm(pool.imap(check_node, nodelist), total=n))
+#        latency_info = pool.map(check_node, nodelist)
 
     pool.close()
     pool.join()
