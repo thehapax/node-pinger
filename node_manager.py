@@ -3,11 +3,7 @@ from nodelist import public_nodes
 from websocket import create_connection as wss_create
 from time import time
 import multiprocessing as mp
-
 from tqdm import tqdm
-from time import sleep
-
-from functools import partial
 
 max_timeout = 2.0 # max ping time is set to 2
 
@@ -46,7 +42,6 @@ def get_sorted_nodelist(nodelist):
     
     with mp.Pool(processes=pool_size) as pool:
         latency_info = list(tqdm(pool.imap(check_node, nodelist), total=n))
-#        latency_info = pool.map(check_node, nodelist)
 
     pool.close()
     pool.join()
