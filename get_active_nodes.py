@@ -5,7 +5,7 @@ from websocket import enableTrace
 from time import time, sleep
 
 import multiprocessing as mp
-import pandas as pd
+from tqdm import tqdm
 
 max_timeout = 2.0 # max ping time is set to 2
 
@@ -33,8 +33,6 @@ def fetch_node_latency(node):
     name = mp.current_process().name
     node_info = dict()
     latency = wss_test(node)
-    #print(f"{name}: {node}, latency: {latency}")
-    print('#', end='', flush=True)
     node_info = {'Node': node, 'Latency': latency}
     return node_info
 
@@ -42,31 +40,34 @@ def fetch_node_latency(node):
 def get_active_nodes(drop_inactive=True):
     nodelist = public_nodes()
     pool_size = mp.cpu_count()*2
-    latency_info = []
+    n = len(nodelist)
 
     with mp.Pool(processes=pool_size) as pool:
-        latency_info = pool.map(fetch_node_latency, nodelist)
+        latency_info = list(tqdm(pool.imap(fetch_node_latency, nodelist), total=n))
 
     pool.close()
     pool.join()
-    
-    df = pd.DataFrame(latency_info)
 
-    if drop_inactive is True:
-        df = df.dropna()
+    if drop_inactive:
+        filtered_list = [i for i in latency_info if i['Latency'] is not None]
+    else:
+        filtered_list = latency_info
         
-    dfc = df.sort_values('Latency', ascending=True)
-    return dfc
+    sorted_list = sorted(filtered_list, key=lambda k: k['Latency'])
+    sorted_node_list = [i['Node'] for i in sorted_list]
+
+    return sorted_node_list
 
         
 if __name__ == '__main__':
 
     print("Polling nodes...")
-    df = get_active_nodes(drop_inactive=True)
+    nodes = get_active_nodes(drop_inactive=True)
     print(" - 100%\n")
 
-    if df.empty == False:
-        print(f"Active nodes reachable < {max_timeout} seconds in your range:")    
-        pretty_print(df)
+    if len(nodes) > 0:
+        print("Active nodes within your range:")            
+        for i in nodes:
+            print(i)
     else:
         print("No active nodes within your range")
