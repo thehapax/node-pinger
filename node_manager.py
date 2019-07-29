@@ -9,8 +9,9 @@ from urllib.request import urlopen
 max_timeout = 2.0 # max ping time is set to 2
 
 def internet_on():
+    # try to ping google
     try:
-        urlopen('http://8.8.8.8', timeout=2)
+        urlopen('http://8.8.8.8', timeout=max_timeout)
         return True
     except:
         return False
