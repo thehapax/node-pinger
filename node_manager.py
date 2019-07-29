@@ -4,8 +4,17 @@ from websocket import create_connection as wss_create
 from time import time
 import multiprocessing as mp
 from tqdm import tqdm
+from urllib.request import urlopen
 
 max_timeout = 2.0 # max ping time is set to 2
+
+def internet_on():
+    try:
+        urlopen('http://8.8.8.8', timeout=2)
+        return True
+    except:
+        return False
+
 
 def wss_test(node):
     """
@@ -55,16 +64,19 @@ def get_sorted_nodelist(nodelist):
 
 if __name__ == '__main__':
 
-    nodelist = public_nodes()
-    
-    print("Polling nodes...")
-    nodes = get_sorted_nodelist(nodelist)
-    print(" - 100%\n")
+    if internet_on() is False:
+        print("internet NOT available! Please check your connection!")    
+    else:    
 
-    if len(nodes) > 0:
-        print("Active nodes within your range:")            
-        for i in nodes:
-            print(i)
-    else:
-        print("No active nodes within your range")
+        nodelist = public_nodes()    
+        print("Polling nodes...")
+        nodes = get_sorted_nodelist(nodelist)
+        print(" - 100%\n")
+    
+        if len(nodes) > 0:
+            print("Active nodes within your range:")            
+            for i in nodes:
+                print(i)
+        else:
+            print("No active nodes within your range")
 
