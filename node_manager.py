@@ -7,7 +7,7 @@ from tqdm import tqdm
 import platform
 import subprocess
 
-max_timeout = 2.0  #max ping time is set to 2s
+max_timeout = 2.0  # max ping time is set to 2s
 host = '8.8.8.8'
 
 
