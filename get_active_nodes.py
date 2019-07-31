@@ -9,6 +9,9 @@ from tqdm import tqdm
 
 max_timeout = 2.0 # max ping time is set to 2
 
+nodelist = public_nodes()
+
+
 def pretty_print(df):
     with pd.option_context('display.max_rows', None, 'display.max_columns', None):
         # pretty print entire thing
@@ -38,7 +41,7 @@ def fetch_node_latency(node):
 
 
 def get_active_nodes(drop_inactive=True):
-    nodelist = public_nodes()
+
     pool_size = mp.cpu_count()*2
     n = len(nodelist)
 
@@ -61,12 +64,14 @@ def get_active_nodes(drop_inactive=True):
         
 if __name__ == '__main__':
 
-    print("Polling nodes...")
+    total_nodes = len(nodelist)
+    print(f"Polling nodes...total nodes querying: {total_nodes}")
     nodes = get_active_nodes(drop_inactive=True)
     print(" - 100%\n")
 
-    if len(nodes) > 0:
-        print("Active nodes within your range:")            
+    active_nodes = len(nodes)
+    if active_nodes > 0:
+        print(f"Discovered {active_nodes} out of {total_nodes} Active nodes within {max_timeout}s range: ")
         for i in nodes:
             print(i)
     else:

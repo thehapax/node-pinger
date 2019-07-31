@@ -4,17 +4,45 @@ from websocket import create_connection as wss_create
 from time import time
 import multiprocessing as mp
 from tqdm import tqdm
-from urllib.request import urlopen
+import platform
+import subprocess
 
-max_timeout = 2.0 # max ping time is set to 2
+max_timeout = 2.0  #max ping time is set to 2s
+host = '8.8.8.8'
 
-def internet_on():
-    # try to ping google
+
+def ping(host, network_timeout=3):
+    """Send a ping packet to the specified host, using the system "ping" command."""
+    args = [
+        'ping'
+    ]
+
+    platform_os = platform.system().lower()
+
+    if platform_os == 'windows':
+        args.extend(['-n', '1'])
+        args.extend(['-w', str(network_timeout * 1000)])
+    elif platform_os in ('linux', 'darwin'):
+        args.extend(['-c', '1'])
+        args.extend(['-W', str(network_timeout)])
+    else:
+        raise NotImplemented('Unsupported OS: {}'.format(platform_os))
+
+    args.append(host)
+
     try:
-        urlopen('http://8.8.8.8', timeout=max_timeout)
+        if platform_os == 'windows':
+            output = subprocess.run(args, check=True, universal_newlines=True).stdout
+
+            if output and 'TTL' not in output:
+                return False
+        else:
+            subprocess.run(args, check=True)
+
         return True
-    except:
+    except (subprocess.CalledProcessError, subprocess.TimeoutExpired):
         return False
+
 
 
 def wss_test(node):
@@ -65,17 +93,19 @@ def get_sorted_nodelist(nodelist):
 
 if __name__ == '__main__':
 
-    if internet_on() is False:
+    if ping(host, 1)is False:
         print("internet NOT available! Please check your connection!")    
-    else:    
+    else:
+        nodelist = public_nodes()
+        total_nodes = len(nodelist)
 
-        nodelist = public_nodes()    
-        print("Polling nodes...")
+        print(f"Polling nodes...total nodes querying: {total_nodes}")
         nodes = get_sorted_nodelist(nodelist)
         print(" - 100%\n")
-    
-        if len(nodes) > 0:
-            print("Active nodes within your range:")            
+
+        active_nodes = len(nodes)
+        if active_nodes > 0:
+            print(f"Discovered {active_nodes} out of {total_nodes} Active nodes within {max_timeout}s range: ")
             for i in nodes:
                 print(i)
         else:
