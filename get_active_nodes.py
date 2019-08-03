@@ -1,22 +1,23 @@
+#!/usr/bin/env python3
 from nodelist import public_nodes
-
 from websocket import create_connection as wss_create
 from time import time
-
-import multiprocessing as mp
 from tqdm import tqdm
+from itertools import repeat
+from multiprocessing import freeze_support
+import multiprocessing as mp
 
 max_timeout = 2.0  # max ping time is set to 2
 nodelist = public_nodes()
 
 
-def wss_test(node):
+def wss_test(node, max_timeout):
     """
     Create a websocket connection test
     """
     try:
         start = time()
-        rpc = wss_create(node, timeout=max_timeout)
+        wss_create(node, timeout=max_timeout)
         latency = (time() - start)
         return latency
     except Exception as e:
@@ -24,20 +25,19 @@ def wss_test(node):
         return None
 
 
-def fetch_node_latency(node):
+def fetch_node_latency(node, timeout):
     name = mp.current_process().name
-    node_info = dict()
-    latency = wss_test(node)
+    latency = wss_test(node, timeout)
     node_info = {'Node': node, 'Latency': latency}
     return node_info
 
 
-def get_active_nodes(drop_inactive=True):
+def get_active_nodes(timeout, drop_inactive=True):
     pool_size = mp.cpu_count()*2
     n = len(nodelist)
 
     with mp.Pool(processes=pool_size) as pool:
-        latency_info = list(tqdm(pool.imap(fetch_node_latency, nodelist), total=n))
+        latency_info = list(tqdm(pool.starmap(fetch_node_latency, zip(nodelist, repeat(timeout))), total=n))
 
     pool.close()
     pool.join()
@@ -54,11 +54,11 @@ def get_active_nodes(drop_inactive=True):
 
         
 if __name__ == '__main__':
+    freeze_support()
 
     total_nodes = len(nodelist)
     print(f"Polling nodes...total nodes querying: {total_nodes}")
-    nodes = get_active_nodes(drop_inactive=True)
-    print(" - 100%\n")
+    nodes = get_active_nodes(max_timeout, drop_inactive=True)
 
     active_nodes = len(nodes)
     if active_nodes > 0:

@@ -1,11 +1,16 @@
+#!/usr/bin/env python3
 from nodelist import public_nodes
 
 from websocket import create_connection as wss_create
 from time import time
-import multiprocessing as mp
 from tqdm import tqdm
+from itertools import repeat
+from multiprocessing import freeze_support
+
+import multiprocessing as mp
 import platform
 import subprocess
+
 
 max_timeout = 2.0  # max ping time is set to 2s
 host = '8.8.8.8'
@@ -13,10 +18,7 @@ host = '8.8.8.8'
 
 def ping(host, network_timeout=3):
     """Send a ping packet to the specified host, using the system "ping" command."""
-    args = [
-        'ping'
-    ]
-
+    args = ['ping']
     platform_os = platform.system().lower()
 
     if platform_os == 'windows':
@@ -33,7 +35,6 @@ def ping(host, network_timeout=3):
     try:
         if platform_os == 'windows':
             output = subprocess.run(args, check=True, universal_newlines=True).stdout
-
             if output and 'TTL' not in output:
                 return False
         else:
@@ -44,14 +45,13 @@ def ping(host, network_timeout=3):
         return False
 
 
-
-def wss_test(node):
+def wss_test(node, max_timeout):
     """
     Test websocket connection to a node
     """
     try:
         start = time()
-        rpc = wss_create(node, timeout=max_timeout)
+        wss_create(node, timeout=max_timeout)
         latency = (time() - start)
         return latency
     except Exception as e:
@@ -59,17 +59,16 @@ def wss_test(node):
         return None
 
 
-def check_node(node):
+def check_node(node, timeout):
     """
     check latency of an individual node
     """
-    node_info = dict()
-    latency = wss_test(node)
+    latency = wss_test(node, timeout)
     node_info = {'Node': node, 'Latency': latency}
     return node_info
 
 
-def get_sorted_nodelist(nodelist):
+def get_sorted_nodelist(nodelist, timeout):
     """
     check all nodes and poll for latency, 
     eliminate nodes with no response, then sort  
@@ -79,7 +78,7 @@ def get_sorted_nodelist(nodelist):
     n = len(nodelist)
     
     with mp.Pool(processes=pool_size) as pool:
-        latency_info = list(tqdm(pool.imap(check_node, nodelist), total=n))
+        latency_info = list(tqdm(pool.starmap(check_node, zip(nodelist, repeat(timeout))), total=n))
 
     pool.close()
     pool.join()
@@ -92,16 +91,17 @@ def get_sorted_nodelist(nodelist):
 
 
 if __name__ == '__main__':
+    freeze_support()
 
     if ping(host, 1)is False:
         print("internet NOT available! Please check your connection!")    
     else:
         nodelist = public_nodes()
         total_nodes = len(nodelist)
+        max_timeout = 2.0
 
         print(f"Polling nodes...total nodes querying: {total_nodes}")
-        nodes = get_sorted_nodelist(nodelist)
-        print(" - 100%\n")
+        nodes = get_sorted_nodelist(nodelist, max_timeout)
 
         active_nodes = len(nodes)
         if active_nodes > 0:
