@@ -99,7 +99,7 @@ if __name__ == '__main__':
         nodelist = public_nodes()
         total_nodes = len(nodelist)
 
-        var = input("Please enter min timeout in ms or Enter for default = 2.0ms :")
+        var = input("Please enter min timeout in ms or [Enter] for default = 2.0ms :")
         if var is not None:
             max_timeout = var
         else:
