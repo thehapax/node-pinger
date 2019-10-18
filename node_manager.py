@@ -98,7 +98,14 @@ if __name__ == '__main__':
     else:
         nodelist = public_nodes()
         total_nodes = len(nodelist)
-        max_timeout = 2.0
+
+        var = input("Please enter min timeout in ms or Enter for default = 2.0ms :")
+        if var is not None:
+            max_timeout = var
+        else:
+            max_timeout = 2.0
+
+        print(f" Your min time out is: {max_timeout} ms")
 
         print(f"Polling nodes...total nodes querying: {total_nodes}")
         nodes = get_sorted_nodelist(nodelist, max_timeout)
