@@ -65,6 +65,7 @@ def check_node(node, timeout):
     """
     latency = wss_test(node, timeout)
     node_info = {'Node': node, 'Latency': latency}
+    print(node_info)
     return node_info
 
 
@@ -99,13 +100,12 @@ if __name__ == '__main__':
         nodelist = public_nodes()
         total_nodes = len(nodelist)
 
-        var = input("Please enter min timeout in ms or [Enter] for default = 2.0ms :")
-        if var is not None:
-            max_timeout = var
-        else:
+        var = input("Please enter min timeout in ms or [Enter] for default = 2.0s :")
+        max_timeout = var
+        if var is None:
             max_timeout = 2.0
 
-        print(f" Your min time out is: {max_timeout} ms")
+        print(f" Your min time out is: {max_timeout} s")
 
         print(f"Polling nodes...total nodes querying: {total_nodes}")
         nodes = get_sorted_nodelist(nodelist, max_timeout)

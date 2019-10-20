@@ -29,6 +29,7 @@ def fetch_node_latency(node, timeout):
     name = mp.current_process().name
     latency = wss_test(node, timeout)
     node_info = {'Node': node, 'Latency': latency}
+    print(node_info)
     return node_info
 
 
