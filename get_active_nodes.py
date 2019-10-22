@@ -21,7 +21,7 @@ def wss_test(node, max_timeout):
         latency = (time() - start)
         return latency
     except Exception as e:
-        # print(e) # suppress errors
+        print(e) # suppress errors
         return None
 
 
@@ -29,7 +29,7 @@ def fetch_node_latency(node, timeout):
     name = mp.current_process().name
     latency = wss_test(node, timeout)
     node_info = {'Node': node, 'Latency': latency}
-    print(node_info)
+    print(f'{name}: {node_info}')
     return node_info
 
 
