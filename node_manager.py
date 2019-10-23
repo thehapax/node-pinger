@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 from nodelist import public_nodes
-from get_active_nodes import wss_test
+from get_active_nodes import wss_test, py_version_check
 
 from websocket import create_connection as wss_create
 from time import time
@@ -79,8 +79,9 @@ def get_sorted_nodelist(nodelist, timeout):
 
 
 if __name__ == '__main__':
+    py_version_check()
     freeze_support()
-
+    
     if ping(host, 1)is False:
         print("internet NOT available! Please check your connection!")    
     else:

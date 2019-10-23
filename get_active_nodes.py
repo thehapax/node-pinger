@@ -7,11 +7,23 @@ from itertools import repeat
 from multiprocessing import freeze_support
 import multiprocessing as mp
 import ssl
+import sys
 
 max_timeout = 2.0  # max ping time is set to 2
 nodelist = public_nodes()
 
+def py_version_check():
+    major = float(sys.version_info[0])
+    minor = float(sys.version_info[1]/10)
+    micro = int(sys.version_info[2])
+    pyversion = major + minor
+    
+    print(f"Py Version: {pyversion}.{micro}")
+    
+    if pyversion < 3.7:
+        raise Exception(f"Must be using Python 3.7 or greater: your version: {pyversion}.{micro}")
 
+    
 def wss_test(node, max_timeout):
     """
     Create a websocket connection
@@ -22,9 +34,10 @@ def wss_test(node, max_timeout):
 
         # for python 3.6.8 only: disable ssl cert verification
         # in order to use it  as of Oct 2019
-        #
+        #wss_create(node, timeout=max_timeout,  sslopt={"cert_reqs": ssl.CERT_NONE})
+        
         # python 3.7 has websocket built in, does not need sslopt out
-        wss_create(node, timeout=max_timeout,  sslopt={"cert_reqs": ssl.CERT_NONE})
+        wss_create(node, timeout=max_timeout)
         latency = (time() - start)
         return latency
     except Exception as e:
@@ -62,8 +75,9 @@ def get_active_nodes(timeout, drop_inactive=True):
 
         
 if __name__ == '__main__':
+    py_version_check()
     freeze_support()
-
+    
     total_nodes = len(nodelist)
     print(f"Polling nodes...total nodes querying: {total_nodes}")
     nodes = get_active_nodes(max_timeout, drop_inactive=True)
