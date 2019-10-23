@@ -6,6 +6,7 @@ from tqdm import tqdm
 from itertools import repeat
 from multiprocessing import freeze_support
 import multiprocessing as mp
+import ssl
 
 max_timeout = 2.0  # max ping time is set to 2
 nodelist = public_nodes()
@@ -13,11 +14,17 @@ nodelist = public_nodes()
 
 def wss_test(node, max_timeout):
     """
-    Create a websocket connection test
+    Create a websocket connection
+    Test connection to a Bitshares node
     """
     try:
         start = time()
-        wss_create(node, timeout=max_timeout)
+
+        # for python 3.6.8 only: disable ssl cert verification
+        # in order to use it  as of Oct 2019
+        #
+        # python 3.7 has websocket built in, does not need sslopt out
+        wss_create(node, timeout=max_timeout,  sslopt={"cert_reqs": ssl.CERT_NONE})
         latency = (time() - start)
         return latency
     except Exception as e:

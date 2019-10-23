@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 from nodelist import public_nodes
+from get_active_nodes import wss_test
 
 from websocket import create_connection as wss_create
 from time import time
@@ -45,20 +46,6 @@ def ping(host, network_timeout=3):
         return False
 
 
-def wss_test(node, max_timeout):
-    """
-    Test websocket connection to a node
-    """
-    try:
-        start = time()
-        wss_create(node, timeout=max_timeout)
-        latency = (time() - start)
-        return latency
-    except Exception as e:
-        # print(e) # suppress errors
-        return None
-
-
 def check_node(node, timeout):
     """
     check latency of an individual node
@@ -101,9 +88,10 @@ if __name__ == '__main__':
         total_nodes = len(nodelist)
 
         var = input("Please enter min timeout in ms or [Enter] for default = 2.0s :")
-        max_timeout = var
-        if var is None:
+        if len(var) == 0:
             max_timeout = 2.0
+        else:
+            max_timeout = float(var)            
 
         print(f" Your min time out is: {max_timeout} s")
 
