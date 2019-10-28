@@ -2,8 +2,6 @@
 from nodelist import public_nodes
 from get_active_nodes import wss_test, py_version_check
 
-from websocket import create_connection as wss_create
-from time import time
 from tqdm import tqdm
 from itertools import repeat
 from multiprocessing import freeze_support

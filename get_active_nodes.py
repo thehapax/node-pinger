@@ -18,10 +18,8 @@ def py_version_check():
     micro = int(sys.version_info[2])
     pyversion = major + minor
     
-    print(f"Py Version: {pyversion}.{micro}")
-    
-    if pyversion < 3.7:
-        raise Exception(f"Must be using Python 3.7 or greater: your version: {pyversion}.{micro}")
+#    print(f"Py Version: {pyversion}.{micro}")
+    return pyversion
 
     
 def wss_test(node, max_timeout):
@@ -31,13 +29,14 @@ def wss_test(node, max_timeout):
     """
     try:
         start = time()
+        pyversion = py_version_check()
+        if pyversion < 3.7:
+            # for python 3.6.8 only: disable ssl cert verification to use it as of Oct 2019
+            wss_create(node, timeout=max_timeout,  sslopt={"cert_reqs": ssl.CERT_NONE})
+        else:
+            # python 3.7 has websocket built in, does not need sslopt out
+            wss_create(node, timeout=max_timeout)
 
-        # for python 3.6.8 only: disable ssl cert verification
-        # in order to use it  as of Oct 2019
-        #wss_create(node, timeout=max_timeout,  sslopt={"cert_reqs": ssl.CERT_NONE})
-        
-        # python 3.7 has websocket built in, does not need sslopt out
-        wss_create(node, timeout=max_timeout)
         latency = (time() - start)
         return latency
     except Exception as e:
@@ -75,7 +74,6 @@ def get_active_nodes(timeout, drop_inactive=True):
 
         
 if __name__ == '__main__':
-    py_version_check()
     freeze_support()
     
     total_nodes = len(nodelist)
